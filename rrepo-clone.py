@@ -18,6 +18,7 @@ import xml.etree.ElementTree as ET
 import gzip
 import shutil
 import sys
+import hashlib
 ######################
 
 # persistent TCP connection
@@ -35,6 +36,14 @@ class Ctx:
     nnewfiles: int = 0
     nfailedfiles: int = 0
     ndownsize: float = 0.0
+    
+    # to be added by argparser:
+    # baseurl
+    # basedir
+    # arch
+    # noclean
+    # verbose
+    # log
 
 ctx = Ctx()
 
@@ -92,7 +101,7 @@ def parse_cmdline():
 #
 
 
-def download(fn: str, size: int = -1):
+def download(fn: str, size: int = -1, checksum: str = None, checksumtype: str = 'sha256'):
     """
     Downloads file from baseurl/fn and saves to basedir/fn
 
@@ -117,6 +126,7 @@ def download(fn: str, size: int = -1):
             # Downloading from the Internet
             #
             url = requests.compat.urljoin(ctx.baseurl, fn)
+            hasher = hashlib.new(checksumtype) if checksum else None
 
             for n in range(connRetries):
                 if n > 0:
@@ -131,6 +141,10 @@ def download(fn: str, size: int = -1):
                             for chunk in r.iter_content(chunk_size=1024*1024):
                                 downsize += len(chunk)
                                 f.write(chunk)
+                                if hasher:
+                                    hasher.update(chunk)
+                    if hasher and hasher.hexdigest() != checksum:
+                        raise ValueError("Wrong checksum")
                     print(f"downloaded")
                     ctx.nnewfiles += 1
                     ctx.ndownsize += downsize
@@ -148,6 +162,12 @@ def download(fn: str, size: int = -1):
                     print("download FAILED")
                     print(exc)
                     continue  # retry
+
+                except ValueError as exc:
+                    print("download CORRUPTED")
+                    print(exc)
+                    continue # retry
+
             else:  # retries finished
                 print("ERROR: package skipped")
                 ctx.nfailedfiles += 1
@@ -208,7 +228,8 @@ def main():
                 if not ctx.arch or arch in ctx.arch:
                     fn = e.find(f'{ns}location').get('href')
                     sz = int(e.find(f'{ns}size').get('package'))
-                    download(fn, sz)
+                    checksum = e.find(f'{ns}checksum')
+                    download(fn, sz, checksum.text, checksum.get('type'))
                 e.clear()  # !!! a must, memory hog otherwise
 
     print("")
