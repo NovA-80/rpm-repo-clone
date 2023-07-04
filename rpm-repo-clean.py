@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-RPM Repository clone clear
+RPM Repository clean
 
-Deletes files not listed in the repository from its local clone. Only repo
+Deletes files not listed in the repository metainfo from its local clone. Only repo
 subdir contents are cleaned, any additional top level objects remains unchanged.
 
 @author: Andrey Novikov aka NovA

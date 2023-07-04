@@ -1,17 +1,36 @@
-# RPM Repositories Cloning tool
+RPM Repositories Cloning tool
+=============================
 
-Clones repositories in RPM-MD format with optionally selecting just needed architectures. Written in Python-3.6+. Tested on OpenSUSE-Leap repositories.
-Inspired by [rrclone](https://github.com/eleksir/rrclone) perl tool.
+Python command line tool to clone repositories in RPM-MD format with optionally selecting needed architectures. Tested on OpenSUSE-Leap repositories.
+
+Inspired by [rrclone](https://github.com/eleksir/rrclone) Perl tool.
 
 ## Getting Started
+
+Use
 ```
-rrepo-clone.py  --arch x84_64 --arch noarch  http://source/repo/   path/to/destination/folder/
+$ ./rpm-repo-clone.py  --arch x86_64 --arch noarch  http://source/repo/   path/to/destination/folder/
+```
+to clone repo from the Web keeping only 'x86_64' & 'noarch' package architectures.
+
+Or to copy repo files from a local directory (e.g. on usb-stick) use
+```
+$ ./rpm-repo-clone.py   local/path/to/source/repo/   path/to/dest/folder/
 ```
 
-### Prerequisites
-Python3 environment with at least 3.6 version of python running under any OS (Windows, Linux, etc). Python modules required: `Requests` and several standard ones.
 
-### Using rrclone
-You need a correct path to repository. For example, take it from a .repo-file (located in '/etc/yum.repos.d' (RedHat) or '/etc/zypp/repos.d' (SUSE) dirs) as a string after "baseurl=". To check that url is correct you can try to download part of repository xml metadata. Put your string into browser address bar and append "/repodata/repomd.xml" (no quotes) and if you see xml text then the url is correct.
+## Requirements
+- Python 3.6+
+- `Requests` python module
 
-By default, the `rrepo-clone` downloads packages for all architectures available. If only several are required (e.g. 'x86_64' and 'noarch'), provide one or many `--arch <name>` options in the command line.
+## Usage
+
+You need a correct path to RPM-MD repository. For example, take it from a `.repo`-file (located in '/etc/yum.repos.d' (RedHat) or '/etc/zypp/repos.d' (SUSE) dirs) as a string after "baseurl=". To check that URL is correct you can try to download repository xml metadata. Put your string into browser address bar and append "/repodata/repomd.xml" (no quotes) and if you see xml text then the URL is correct.
+
+By default, the `rpm-repo-clone` downloads packages for all architectures available. If only several are required (e.g. 'x86_64' and 'noarch'), provide one or many `--arch <name>` options in the command line.
+
+### Auxiliary `rpm-repo-clean` tool
+
+This deletes files not listed in the repository metadata. It can help to clean-up a local repository storage created by direct packages downloading from the Web (e.g. by mirroring repo site contents via `wget`).
+
+Note, `rpm-repo-clean` cleans only subdirectories, any top level objects remains unchanged.
